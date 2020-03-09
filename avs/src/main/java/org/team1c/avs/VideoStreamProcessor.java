@@ -60,13 +60,24 @@ public class VideoStreamProcessor {
 				JsonObject obj = gson.fromJson(record.value(), JsonObject.class);
 				byte[] bytes = Base64.getDecoder().decode(obj.get("data").getAsString());
 				Mat mat = ba2Mat(480, 640, CvType.CV_8UC3, bytes);
-				
 				System.out.printf("New Frame: CamID: %s Res: %d %d\n", cameraId, mat.cols(), mat.rows());
+				
+				processFrame(mat);
+				
+				// write to video file
 				videoWriter.write(mat);
 			}
 		}
 	}
 	
+	/**
+	 * Performs processing on the given image frame.
+	 * @param mat image frame to process
+	 */
+	private static void processFrame(Mat mat) {
+		
+	}
+
 	/**
 	 * Creates a Mat object from a byte array.
 	 * @param rows number of rows
@@ -75,7 +86,7 @@ public class VideoStreamProcessor {
 	 * @param byteArray byte array containing pixel values
 	 * @return Mat object representing image of the given byte array
 	 */
-	public static Mat ba2Mat(int rows, int cols, int type, byte[] byteArray) {
+	private static Mat ba2Mat(int rows, int cols, int type, byte[] byteArray) {
 		Mat mat = new Mat(rows, cols, type);
 		mat.put(0, 0, byteArray);
 		return mat;
