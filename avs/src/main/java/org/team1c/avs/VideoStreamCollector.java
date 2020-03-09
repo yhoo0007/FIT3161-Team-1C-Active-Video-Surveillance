@@ -21,16 +21,18 @@ public class VideoStreamCollector {
 		producerProp.put("camera.url", "http://admin:123456@192.168.0.167/VIDEO.CGI");  // TODO verify that camera works
 		producerProp.put("camera.id", "vid-01");
 		producerProp.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		producerProp.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		producerProp.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
 		
-		Producer<String, String> producer = new KafkaProducer<String, String>(producerProp);
+//		Producer<String, String> producer = new KafkaProducer<String, String>(producerProp);
+		Producer<String, byte[]> producer = new KafkaProducer<String, byte[]>(producerProp);
+		
 		generateEvent(producer,
 				producerProp.getProperty("kafka.topic"),
 				producerProp.getProperty("camera.id"),
 				producerProp.getProperty("camera.url"));
 	}
 
-	private static void generateEvent(Producer<String, String> producer, String topic, String camId, String videoUrl) throws Exception {
+	private static void generateEvent(Producer<String, byte[]> producer, String topic, String camId, String videoUrl) throws Exception {
 		String[] urls = videoUrl.split(",");
 		String[] ids = camId.split(",");
 		

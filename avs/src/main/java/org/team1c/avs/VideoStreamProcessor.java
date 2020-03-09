@@ -1,14 +1,23 @@
 package org.team1c.avs;
 
+import java.awt.FlowLayout;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Properties;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -30,21 +39,21 @@ public class VideoStreamProcessor {
 		consumerProp.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
 		consumerProp.put(ConsumerConfig.GROUP_ID_CONFIG, "consumerGroup1");
 		consumerProp.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-		consumerProp.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+		consumerProp.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
 		consumerProp.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1");
 		consumerProp.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 		consumerProp.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		
-		Consumer<String, String> consumer = new KafkaConsumer<String, String>(consumerProp);
+		Consumer<String, byte[]> consumer = new KafkaConsumer<String, byte[]>(consumerProp);
 		consumer.subscribe(Collections.singletonList("video-input"));
 		processFrames(consumer);
 	}
 	
-	public static void processFrames(Consumer<String, String> consumer) {
+	public static void processFrames(Consumer<String, byte[]> consumer) {
 		Gson gson = new Gson();
 		
 		final String videoFilePath = "G:\\output.avi";
-		final double CAMERA_FPS = 25.0;
+		final double CAMERA_FPS = 20.0;
 		final Size frameSize = new Size(640, 480);
 		VideoWriter videoWriter = new VideoWriter(
 				videoFilePath, 
@@ -53,18 +62,25 @@ public class VideoStreamProcessor {
 				frameSize, 
 				true);
 		
+		JFrame frame=new JFrame();
+		JLabel lbl=new JLabel();
 		while (true) {
-			ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
-			for (ConsumerRecord<String, String> record : consumerRecords) {
+			ConsumerRecords<String, byte[]> consumerRecords = consumer.poll(1000);
+			
+			for (ConsumerRecord<String, byte[]> record : consumerRecords) {
 				String cameraId = record.key();
-				JsonObject obj = gson.fromJson(record.value(), JsonObject.class);
-				byte[] bytes = Base64.getDecoder().decode(obj.get("data").getAsString());
-				Mat mat = ba2Mat(480, 640, CvType.CV_8UC3, bytes);
+//				JsonObject obj = gson.fromJson(record.value(), JsonObject.class);
+//				byte[] bytes = Base64.getDecoder().decode(obj.get("data").getAsString());
+				Mat mat = ba2Mat(480, 640, CvType.CV_8UC3, record.value());
 				System.out.printf("New Frame: CamID: %s Res: %d %d\n", cameraId, mat.cols(), mat.rows());
 				
 				processFrame(mat);
 				
+				System.out.println("Showing frame");
+				displayImage(Mat2BufferedImage(mat), frame, lbl);
+				
 				// write to video file
+				System.out.println("Writing frame");
 				videoWriter.write(mat);
 			}
 		}
@@ -90,6 +106,35 @@ public class VideoStreamProcessor {
 		Mat mat = new Mat(rows, cols, type);
 		mat.put(0, 0, byteArray);
 		return mat;
+	}
+	
+	public static BufferedImage Mat2BufferedImage(Mat m) {
+	    // Fastest code
+	    // output can be assigned either to a BufferedImage or to an Image
+
+	    int type = BufferedImage.TYPE_BYTE_GRAY;
+	    if ( m.channels() > 1 ) {
+	        type = BufferedImage.TYPE_3BYTE_BGR;
+	    }
+	    int bufferSize = m.channels()*m.cols()*m.rows();
+	    byte [] b = new byte[bufferSize];
+	    m.get(0,0,b); // get all the pixels
+	    BufferedImage image = new BufferedImage(m.cols(),m.rows(), type);
+	    final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+	    System.arraycopy(b, 0, targetPixels, 0, b.length);  
+	    return image;
+	}
+	
+	public static void displayImage(Image img2, JFrame frame, JLabel lbl) {
+	    //BufferedImage img=ImageIO.read(new File("/HelloOpenCV/lena.png"));
+		ImageIcon icon=new ImageIcon(img2);
+	    frame.setLayout(new FlowLayout());
+	    frame.setSize(img2.getWidth(null)+50, img2.getHeight(null)+50);     
+	    
+	    lbl.setIcon(icon);
+	    frame.add(lbl);
+	    frame.setVisible(true);
+	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 
 }

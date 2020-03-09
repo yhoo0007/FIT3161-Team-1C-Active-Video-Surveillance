@@ -19,10 +19,10 @@ import com.google.gson.JsonObject;
 public class VideoEventGenerator implements Runnable {
 	private String cameraId;
 	private String url;
-	private Producer<String, String> producer;
+	private Producer<String, byte[]> producer;
 	private String topic;
 	
-	public VideoEventGenerator(String cameraId, String url, Producer<String, String> producer, String topic) {
+	public VideoEventGenerator(String cameraId, String url, Producer<String, byte[]> producer, String topic) {
 		this.cameraId = cameraId;
 		this.url = url;
 		this.producer = producer;
@@ -44,7 +44,7 @@ public class VideoEventGenerator implements Runnable {
 		}
 	}
 
-	private void generateEvent(String cameraId, String url, Producer<String, String> producer, String topic) throws Exception {
+	private void generateEvent(String cameraId, String url, Producer<String, byte[]> producer, String topic) throws Exception {
 		// attempt to open camera
 		VideoCapture camera = null;
 		if (isNumeric(url)) {
@@ -69,20 +69,20 @@ public class VideoEventGenerator implements Runnable {
 			byte[] data = new byte[(int) (mat.total() * mat.channels())];
 			mat.get(0, 0, data);
 			
-			// create and populate JSON object
-			JsonObject obj = new JsonObject();  // TODO try to move instantiation out of while loop
-			obj.addProperty("cameraId", cameraId);
-			obj.addProperty("timestamp", new Timestamp(System.currentTimeMillis()).toString());
-			obj.addProperty("rows", mat.rows());
-			obj.addProperty("cols", mat.cols());
-			obj.addProperty("type", mat.type());
-			obj.addProperty("data", Base64.getEncoder().encodeToString(data));
-			
-			// serialize JSON object to string
-			String serialized = gson.toJson(obj);
+//			// create and populate JSON object
+//			JsonObject obj = new JsonObject();  // TODO try to move instantiation out of while loop
+//			obj.addProperty("cameraId", cameraId);
+//			obj.addProperty("timestamp", new Timestamp(System.currentTimeMillis()).toString());
+//			obj.addProperty("rows", mat.rows());
+//			obj.addProperty("cols", mat.cols());
+//			obj.addProperty("type", mat.type());
+//			obj.addProperty("data", Base64.getEncoder().encodeToString(data));
+//			
+//			// serialize JSON object to string
+//			String serialized = gson.toJson(obj);
 			
 			// publish video frame as string
-			producer.send(new ProducerRecord<String, String>(topic, cameraId, serialized), new EventGeneratorCallback(cameraId));			
+			producer.send(new ProducerRecord<String, byte[]>(topic, cameraId, data), new EventGeneratorCallback(cameraId));			
 		}
 		camera.release();
 		mat.release();
