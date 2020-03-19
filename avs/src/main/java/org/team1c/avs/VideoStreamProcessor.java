@@ -20,18 +20,20 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.opencv.core.CvType;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.videoio.VideoWriter;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+//import com.google.gson.Gson;
+//import com.google.gson.JsonObject;
 
 public class VideoStreamProcessor {
 	
-	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+//	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 
 	public static void main(String[] args) {
 		// set consumer properties
@@ -50,9 +52,9 @@ public class VideoStreamProcessor {
 	}
 	
 	public static void processFrames(Consumer<String, byte[]> consumer) {
-		Gson gson = new Gson();
+//		Gson gson = new Gson();
 		
-		final String videoFilePath = "G:\\output.avi";
+		final String videoFilePath = "../output.avi";
 		final double CAMERA_FPS = 20.0;
 		final Size frameSize = new Size(640, 480);
 		VideoWriter videoWriter = new VideoWriter(

@@ -8,13 +8,14 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+//import com.google.gson.Gson;
+//import com.google.gson.JsonObject;
 
 public class VideoEventGenerator implements Runnable {
 	private String cameraId;
@@ -30,10 +31,10 @@ public class VideoEventGenerator implements Runnable {
 	}
 	
 	// load OpenCV
-//	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }  // TODO might have to change to load direct path instead
+	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }  // TODO might have to change to load direct path instead
 //	static { System.loadLibrary("opencv_videoio_ffmpeg412_64"); }
-	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
-	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\bin\\opencv_videoio_ffmpeg412_64.dll"); }
+	//static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+	//static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\bin\\opencv_videoio_ffmpeg412_64.dll"); }
 	
 	@Override
 	public void run() {
@@ -48,9 +49,11 @@ public class VideoEventGenerator implements Runnable {
 		// attempt to open camera
 		VideoCapture camera = null;
 		if (isNumeric(url)) {
-			camera = new VideoCapture(Integer.parseInt(url));
+			camera = new VideoCapture();
+			camera.open(Integer.parseInt(url));
 		} else {
-			camera = new VideoCapture(url);
+			camera = new VideoCapture();
+			camera.open(url);
 		}
 		if (!camera.isOpened()) {
 			Thread.sleep(5000);
@@ -60,7 +63,7 @@ public class VideoEventGenerator implements Runnable {
 		}
 		
 		Mat mat = new Mat();
-		Gson gson = new Gson();
+//		Gson gson = new Gson();
 		while (camera.read(mat)) {
 			// resize image
 			Imgproc.resize(mat, mat, new Size(640, 480), 0, 0, Imgproc.INTER_CUBIC);

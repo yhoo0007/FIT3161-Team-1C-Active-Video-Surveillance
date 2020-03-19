@@ -18,7 +18,8 @@ public class VideoStreamCollector {
 		producerProp.put("max.request.size", "2097152");  // 2MB
 		producerProp.put("kafka.topic", "video-input");
 		producerProp.put("compression.type", "gzip");
-		producerProp.put("camera.url", "http://admin:123456@192.168.0.167/VIDEO.CGI");  // TODO verify that camera works
+//		producerProp.put("camera.url", "http://admin:123456@192.168.0.167/VIDEO.CGI");  // TODO verify that camera works
+		producerProp.put("camera.url", "/home/khai/Downloads/160330_5_Compass1_Mpeg4_4K.mov");
 		producerProp.put("camera.id", "vid-01");
 		producerProp.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 		producerProp.put("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
