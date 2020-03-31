@@ -33,7 +33,8 @@ import org.opencv.videoio.VideoWriter;
 public class VideoStreamProcessor {
 	
 //	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
-	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+	static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
 
 	public static void main(String[] args) {
 		// set consumer properties

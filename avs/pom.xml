@@ -134,9 +134,9 @@
         </dependency>
         
         <dependency>
-        	<groupId>org.opencv</groupId>
+        	<groupId>org.openpnp</groupId>
         	<artifactId>opencv</artifactId>
-        	<version>4.2.0</version>
+        	<version>3.4.2-2</version>
         </dependency>
         
     </dependencies>
