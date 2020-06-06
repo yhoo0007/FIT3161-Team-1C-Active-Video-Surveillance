@@ -28,7 +28,7 @@ import com.google.gson.JsonObject;
 
 public class VideoStreamWriter implements Runnable{
     private int camId;
-    private Properties consumerProp;
+    private Properties archiverProp;
 
     private int framesPerBatch = 1;
     private MongoWriter mongoWriter = null;
@@ -40,18 +40,18 @@ public class VideoStreamWriter implements Runnable{
     static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
 
-    public VideoStreamWriter(int camId, Properties consumerProp) {
+    public VideoStreamWriter(int camId, Properties archiverProp) {
         this.camId = camId;
-        this.consumerProp = consumerProp;
+        this.archiverProp = archiverProp;
     }
 
 
     @Override
     public void run() {
         // create and assign Kafka consumer
-        Consumer<String, String> consumer = new KafkaConsumer<String, String>(consumerProp);
+        Consumer<String, String> consumer = new KafkaConsumer<String, String>(archiverProp);
         consumer.assign(Collections.singletonList(
-            new TopicPartition(consumerProp.getProperty("kafka.topic"), camId)
+            new TopicPartition(archiverProp.getProperty("kafka.topic"), camId)
         ));
 
         // start consuming frames
@@ -62,7 +62,12 @@ public class VideoStreamWriter implements Runnable{
         String fileName = null;
         
         // connect to mongo db
-        mongoWriter = new MongoWriter("127.0.0.1", 27017, "avs", "avgFaces");
+        mongoWriter = new MongoWriter(
+            archiverProp.getProperty("mongodb.host"), 
+            Integer.parseInt(archiverProp.getProperty("mongodb.port")),
+            archiverProp.getProperty("mongodb.db"),
+            archiverProp.getProperty("mongodb.collection")
+        );
 
         // connect to hdfs
         try {
@@ -82,7 +87,10 @@ public class VideoStreamWriter implements Runnable{
                     localFp = "../" + fileName;
                     hdfsFp = "/" + fileName;
                     videoWriter = getVideoWriter(frame, localFp);
-                    framesPerBatch = (int) (frame.get("fps").getAsDouble() * Long.parseLong(consumerProp.getProperty("accumulate.duration")));
+                    framesPerBatch = (int) (
+                        frame.get("fps").getAsDouble() * 
+                        Long.parseLong(archiverProp.getProperty("accumulate.duration"))
+                    );
                     initialized = true;
                     System.out.println("New batch " + localFp);
                     System.out.println("Frames per batch " + framesPerBatch);
