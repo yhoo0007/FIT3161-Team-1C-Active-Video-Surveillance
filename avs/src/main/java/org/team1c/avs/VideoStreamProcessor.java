@@ -59,6 +59,18 @@ public class VideoStreamProcessor {
 		}
 	}
 
+	/**
+	 * This method is to process frames for each records by:
+	 * - extracting frame 
+	 * - runing analytic on frame (face detection)
+	 * - creating and populating JSON object and serializing it into string
+	 * - publishing process frames into Kafka
+	 * 
+	 * 
+	 * @param consumer
+	 * @param producer
+	 * @param topic
+	 */
 	public static void processFrames(Consumer<String, String> consumer, Producer<String, String> producer, String topic) {
 		Gson gson = new Gson();
 		CascadeClassifier faceCascade = new CascadeClassifier();

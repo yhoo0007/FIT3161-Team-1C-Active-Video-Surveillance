@@ -87,6 +87,17 @@ public class VideoStreamDashboard extends JFrame {
     static int currentCameraId = 0;
     static Consumer<String, String> consumer;
 
+    /**
+     * this method is to initialize the dashboard by
+     * - create kafka consumer
+     * - create top left panel (video feed)
+     * - create top right top panel for first chart (Face count)
+     * - create top right bottom panel for the second chart (Cummulative face count)
+     * - create bottom left panel for camera button selector
+     *  - create bottom right panel for FPS and Bitrate meter
+     * 
+     * @throws Exception
+     */
     public VideoStreamDashboard() throws Exception {
         // create kafka consumer
         Properties consumerProp = Util.getProperties(PROPERTIES_FP);
@@ -123,7 +134,7 @@ public class VideoStreamDashboard extends JFrame {
         ChartPanel faceCountChartPanel = new ChartPanel(faceCountChart);
         topRightTopPanel.add(faceCountChartPanel);
 
-        // create top right bottom panel chart (?? chart)
+        // create top right bottom panel chart (Cumulative Face Count)
         cumulativeSeries = new TimeSeries("Cumulative Face Count");
         cumulativeChart = drawChart(
             "Cumulative Faces / Time",
@@ -213,7 +224,15 @@ public class VideoStreamDashboard extends JFrame {
         setVisible(true);
     }
 
-
+    /**
+     * This method will return a JFreeChart 
+     * 
+     * @param title title of the chart
+     * @param xaxis x axis label
+     * @param yaxis y axis label
+     * @param series the series for the chart
+     * @return JFreeChart
+     */
     private static JFreeChart drawChart(String title, String xaxis, String yaxis, TimeSeries series) {
         XYDataset collection = new TimeSeriesCollection(series);
         JFreeChart chart = ChartFactory.createTimeSeriesChart(
@@ -228,15 +247,21 @@ public class VideoStreamDashboard extends JFrame {
         return chart;
     }
 
-
+  
+    
     private static class CameraButtonListener implements ActionListener {
         private int cameraId;
+
 
         public CameraButtonListener(int cameraId) {
             this.cameraId = cameraId;
         }
 
         @Override
+        /**
+         * this function will change the currentCameraId if the currentCameraId differ
+         * with the cameraId. if it is different, camera change is required
+         */
         public void actionPerformed(ActionEvent actionEvent) {
             if (currentCameraId != this.cameraId) {  // camera change required
                 currentCameraId = this.cameraId;
@@ -244,7 +269,13 @@ public class VideoStreamDashboard extends JFrame {
         }
     }
 
-
+    /**
+     * this method is to run the dashboard such as:
+     * - Extracting information from record
+     * - display frame and analytical data into dashboard
+     * 
+     * 
+     */
     public static void run() {
         Gson gson = new Gson();
         int cumulativeFaces = 0;
@@ -299,7 +330,11 @@ public class VideoStreamDashboard extends JFrame {
         }
     }
 
-
+    /**
+     * this method will update the topLeftPanel of the dashboard into a new image
+     * 
+     * @param img new image that want to be updated
+     */
     public static void displayImage(Image img) {
 		ImageIcon icon = new ImageIcon(img);
 	    topLeftPanel.setSize(img.getWidth(null)+50, img.getHeight(null)+50);     
@@ -309,7 +344,13 @@ public class VideoStreamDashboard extends JFrame {
 	    topLeftPanel.validate();
 	}
 
-
+    /**
+     * this method is used to add new data into faceCountSeries and cumulativeSeries
+     * as a result, the graph will be dynamically changing
+     * 
+     * @param nfaces
+     * @param cumulativeFaces
+     */
     public static void displayAnalytics(int nfaces, int cumulativeFaces) {
         faceCountSeries.add(new Millisecond(new Date()), nfaces);
         cumulativeSeries.add(new Millisecond(new Date()), cumulativeFaces);
