@@ -1,3 +1,8 @@
+// File:         VideoStreamProcessor.java
+// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  6-June-2020         
+// 
+// Description:  This class will create kafka consumer and kafka producer and start video stream processing
 package org.team1c.avs;
 
 import java.util.Base64;

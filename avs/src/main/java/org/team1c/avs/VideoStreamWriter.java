@@ -1,3 +1,12 @@
+// File:         VideoStreamWriter.java
+// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  6-June-2020         
+// 
+// Description:  This class will create and assign Kafka consumer, consume frames, connect to hdfs
+//               and repeatedly: send aggregate data to mongo db, send video files to hdfs, write frames
+//               get number of face count
+
+
 package org.team1c.avs;
 
 import java.text.SimpleDateFormat;

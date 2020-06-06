@@ -1,3 +1,9 @@
+// File:         AvsCustomAssignor.java
+// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  5-June-2020         
+// 
+// Description:  This class is to run the dashboard that will show the live frames, 
+//analytical information as well as the FPS and Bitrate Meter
 package org.team1c.avs;
 
 import java.util.Properties;

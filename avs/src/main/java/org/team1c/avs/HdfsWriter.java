@@ -1,3 +1,8 @@
+// File:         HdfsWriter.java
+// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  5-June-2020         
+// 
+// Description:  This is a Hdfs writer which will be used to copy from localfile into hdfs file
 package org.team1c.avs;
 
 import java.io.BufferedInputStream;
