@@ -1,143 +1,135 @@
 package org.team1c.avs;
 
-import java.awt.FlowLayout;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.List;
 
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+import java.io.IOException;
 
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
 import org.opencv.core.CvType;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
 import org.opencv.core.Size;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.videoio.VideoWriter;
+import org.opencv.core.MatOfRect;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.CascadeClassifier;
 
-//import com.google.gson.Gson;
-//import com.google.gson.JsonObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
 
 public class VideoStreamProcessor {
 	
-//	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
-	static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
+	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
+
+	public static final String HAAR_CASCADE_FP = "E:\\OpenCV_4.1.2\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+
+	public static final String CONSUMER_PROPERTIES_FP = "./properties/processor-consumer.properties";
+	public static final String PRODUCER_PROPERTIES_FP = "./properties/processor-producer.properties";
 
 	public static void main(String[] args) {
-		// set consumer properties
-		Properties consumerProp = new Properties();
-		consumerProp.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-		consumerProp.put(ConsumerConfig.GROUP_ID_CONFIG, "consumerGroup1");
-		consumerProp.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-		consumerProp.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
-		consumerProp.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1");
-		consumerProp.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-		consumerProp.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-		
-		Consumer<String, byte[]> consumer = new KafkaConsumer<String, byte[]>(consumerProp);
-		consumer.subscribe(Collections.singletonList("video-input"));
-		processFrames(consumer);
+		try {
+			// create Kafka consumer
+			Properties consumerProp = Util.getProperties(CONSUMER_PROPERTIES_FP);
+			Consumer<String, String> consumer = new KafkaConsumer<String, String>(consumerProp);
+			consumer.subscribe(Collections.singletonList(consumerProp.getProperty("kafka.topic")));
+
+			// create Kafka producer
+			Properties producerProp = Util.getProperties(PRODUCER_PROPERTIES_FP);
+			Producer<String, String> producer = new KafkaProducer<String, String>(producerProp);
+
+			// start processing
+			processFrames(consumer, producer, producerProp.getProperty("kafka.topic"));
+		} catch (IOException e) {
+			System.out.println("Error reading property files");
+		}
 	}
-	
-	public static void processFrames(Consumer<String, byte[]> consumer) {
-//		Gson gson = new Gson();
-		
-		final String videoFilePath = "../output.avi";
-		final double CAMERA_FPS = 20.0;
-		final Size frameSize = new Size(640, 480);
-		VideoWriter videoWriter = new VideoWriter(
-				videoFilePath, 
-				VideoWriter.fourcc('M', 'J', 'P', 'G'), 
-				CAMERA_FPS, 
-				frameSize, 
-				true);
-		
-		JFrame frame=new JFrame();
-		JLabel lbl=new JLabel();
+
+	public static void processFrames(Consumer<String, String> consumer, Producer<String, String> producer, String topic) {
+		Gson gson = new Gson();
+		CascadeClassifier faceCascade = new CascadeClassifier();
+		faceCascade.load(HAAR_CASCADE_FP);
 		while (true) {
-			ConsumerRecords<String, byte[]> consumerRecords = consumer.poll(1000);
-			
-			for (ConsumerRecord<String, byte[]> record : consumerRecords) {
+			ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
+			for (ConsumerRecord<String, String> record : consumerRecords) {
+				// extract frame from record
 				String cameraId = record.key();
-//				JsonObject obj = gson.fromJson(record.value(), JsonObject.class);
-//				byte[] bytes = Base64.getDecoder().decode(obj.get("data").getAsString());
-				Mat mat = ba2Mat(480, 640, CvType.CV_8UC3, record.value());
-				System.out.printf("New Frame: CamID: %s Res: %d %d\n", cameraId, mat.cols(), mat.rows());
-				
-				processFrame(mat);
-				
-				System.out.println("Showing frame");
-				displayImage(Mat2BufferedImage(mat), frame, lbl);
-				
-				// write to video file
-				System.out.println("Writing frame");
-				videoWriter.write(mat);
+                JsonObject obj = gson.fromJson(record.value(), JsonObject.class);
+				int resolutionx = obj.get("resolutionx").getAsInt();
+				int resolutiony = obj.get("resolutiony").getAsInt();
+				int channels = obj.get("channels").getAsInt();
+				double fps = obj.get("fps").getAsDouble();
+				long initTime = obj.get("initTime").getAsLong();
+				byte[] byteArray = Base64.getDecoder().decode(obj.get("frame").getAsString());
+				Mat mat = Util.ba2Mat(resolutiony, resolutionx, CvType.CV_8UC3, byteArray);
+				System.out.printf("New Frame: CamID: %s\n", cameraId);
+
+				// run analytics on frame
+				int nfaces = processFrame(mat, faceCascade);
+
+				// create and populate JSON object
+				obj = new JsonObject();
+				mat.get(0, 0, byteArray);
+				obj.addProperty("frame", Base64.getEncoder().encodeToString(byteArray));
+				obj.addProperty("nfaces", nfaces);
+				obj.addProperty("resolutionx", resolutionx);
+				obj.addProperty("resolutiony", resolutiony);
+				obj.addProperty("channels", channels);
+				obj.addProperty("fps", fps);
+				obj.addProperty("initTime", initTime);
+				obj.addProperty("procTime", System.currentTimeMillis());
+
+				// serialize JSON object to string
+				String serialized = gson.toJson(obj);
+
+				// publish processed frame to Kafka
+				System.out.println("Republishing frame");
+				producer.send(new ProducerRecord<String, String>(topic, cameraId, serialized), new AvsPublishCallback(cameraId));
 			}
 		}
 	}
-	
+
+
 	/**
-	 * Performs processing on the given image frame.
+	 * Performs Haar Cascade face detection on the given image using the given classifier. Draws 
+	 * green rectangles over detected faces. Returns the number of faces detected.
 	 * @param mat image frame to process
+	 * @param faceCascade cascade classifier to use
+	 * @return number of matches detected
 	 */
-	private static void processFrame(Mat mat) {
-		
-	}
+	private static int processFrame(Mat mat, CascadeClassifier faceCascade) {
+		// downsize image
+		Mat grayFrame = new Mat();
+		Size downsize = new Size(240, 160);
+		Imgproc.cvtColor(mat, grayFrame, Imgproc.COLOR_BGR2GRAY);
+		Imgproc.resize(grayFrame, grayFrame, downsize);
+		Imgproc.equalizeHist(grayFrame, grayFrame);
 
-	/**
-	 * Creates a Mat object from a byte array.
-	 * @param rows number of rows
-	 * @param cols number of columns
-	 * @param type CvType of the image, CV_8UC1, CV_8UC2, etc
-	 * @param byteArray byte array containing pixel values
-	 * @return Mat object representing image of the given byte array
-	 */
-	private static Mat ba2Mat(int rows, int cols, int type, byte[] byteArray) {
-		Mat mat = new Mat(rows, cols, type);
-		mat.put(0, 0, byteArray);
-		return mat;
-	}
-	
-	public static BufferedImage Mat2BufferedImage(Mat m) {
-	    // Fastest code
-	    // output can be assigned either to a BufferedImage or to an Image
+		//detect faces
+		MatOfRect faces = new MatOfRect();
+		faceCascade.detectMultiScale(grayFrame, faces, 1.1, 1, 0, new Size(), new Size());
 
-	    int type = BufferedImage.TYPE_BYTE_GRAY;
-	    if ( m.channels() > 1 ) {
-	        type = BufferedImage.TYPE_3BYTE_BGR;
-	    }
-	    int bufferSize = m.channels()*m.cols()*m.rows();
-	    byte [] b = new byte[bufferSize];
-	    m.get(0,0,b); // get all the pixels
-	    BufferedImage image = new BufferedImage(m.cols(),m.rows(), type);
-	    final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-	    System.arraycopy(b, 0, targetPixels, 0, b.length);  
-	    return image;
+		// draw rectangles over detected faces
+		List<Rect> listOfFaces = faces.toList();
+		for (Rect face: listOfFaces){
+			Point topleft = new Point(face.tl().x * 3, face.tl().y * 3);
+			Point bottomright = new Point(face.br().x * 3, face.br().y * 3);
+			Imgproc.rectangle(mat, topleft, bottomright, new Scalar(0,255,0), 3);
+		}
+		return listOfFaces.size();
 	}
-	
-	public static void displayImage(Image img2, JFrame frame, JLabel lbl) {
-	    //BufferedImage img=ImageIO.read(new File("/HelloOpenCV/lena.png"));
-		ImageIcon icon=new ImageIcon(img2);
-	    frame.setLayout(new FlowLayout());
-	    frame.setSize(img2.getWidth(null)+50, img2.getHeight(null)+50);     
-	    
-	    lbl.setIcon(icon);
-	    frame.add(lbl);
-	    frame.setVisible(true);
-	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	}
-
 }
