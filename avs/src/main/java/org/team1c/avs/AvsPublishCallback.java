@@ -5,6 +5,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 
 
 public class AvsPublishCallback implements Callback {
+    
     private String cameraId;
 
     public AvsPublishCallback(String cameraId) {

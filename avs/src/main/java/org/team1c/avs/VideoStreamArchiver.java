@@ -24,7 +24,10 @@ public class VideoStreamArchiver {
         dummyConsumer.subscribe(
             Collections.singletonList(consumerProp.getProperty("kafka.topic"))
         );
-        List<Integer> cameraIds = Util.getCameraIds(dummyConsumer, consumerProp.getProperty("kafka.topic"));
+        List<Integer> cameraIds = Util.getCameraIds(
+            dummyConsumer, 
+            consumerProp.getProperty("kafka.topic")
+        );
 
         // create a thread for each camera
         for (int camId : cameraIds) {

@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.kafka.clients.producer.Partitioner;
 import org.apache.kafka.common.Cluster;
 
+
 public class AvsCustomPartitioner implements Partitioner {
 
   public AvsCustomPartitioner() {}

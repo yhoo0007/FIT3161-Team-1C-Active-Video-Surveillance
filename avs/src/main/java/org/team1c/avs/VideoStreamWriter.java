@@ -23,8 +23,6 @@ import org.opencv.videoio.VideoWriter;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-// import org.team1c.avs.Util;
-
 
 public class VideoStreamWriter implements Runnable{
     private int camId;
