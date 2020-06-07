@@ -1,3 +1,12 @@
+// File:         VideoStreamWriter.java
+// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  6-June-2020         
+// 
+// Description:  This class will create and assign Kafka consumer, consume frames, connect to hdfs
+//               and repeatedly: send aggregate data to mongo db, send video files to hdfs, write frames
+//               get number of face count
+
+
 package org.team1c.avs;
 
 import java.text.SimpleDateFormat;
@@ -37,7 +46,12 @@ public class VideoStreamWriter implements Runnable{
 
     static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
-
+    /**
+     * constructor method to create a new VideoStreamWrite
+     * 
+     * @param camId the camera id
+     * @param archiverProp the properties
+     */
     public VideoStreamWriter(int camId, Properties archiverProp) {
         this.camId = camId;
         this.archiverProp = archiverProp;
@@ -45,6 +59,21 @@ public class VideoStreamWriter implements Runnable{
 
 
     @Override
+    /**
+     * This function will run the video stream writer by:
+     * - create and assign Kafka consumer
+     * - consume frames
+     * - connect to mongo db
+     * - connect to hdfs
+     * - repeatedly:
+     *      + send aggregate data to mongo db
+     *      + send video files to hdfs
+     *      + write frames
+     *      + get aggregated data (number of face count)
+     * 
+     * 
+     * 
+     */
     public void run() {
         // create and assign Kafka consumer
         Consumer<String, String> consumer = new KafkaConsumer<String, String>(archiverProp);
@@ -137,11 +166,24 @@ public class VideoStreamWriter implements Runnable{
     }
 
 
+    /**
+     * This method will return a string of a file name formatted as
+     * yyyy-MM-dd-HH-mm-ss.avi
+     * 
+     */
     private String generateFileName() {
         return new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + ".avi";
     }
 
-
+    /**
+     * This method will get the FPS and resolution from a frame correspond to the filename and formatted 
+     * as a VideoWriter class
+     * 
+     * 
+     * @param frame JsonObject
+     * @param fileName a file name
+     * @return Video Writer
+     */
     private static VideoWriter getVideoWriter(JsonObject frame, String fileName) {
         return new VideoWriter(
             fileName,

@@ -1,3 +1,8 @@
+// File:         VideoEventGenerator.java
+// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  6-June-2020         
+// 
+// Description:  -
 package org.team1c.avs;
 
 import java.sql.Timestamp;
@@ -25,6 +30,15 @@ public class VideoEventGenerator implements Runnable {
 	private String topic;
 	private int cameraRetries;
 
+	/**
+	 * 
+	 * constructor method to create a new VideoEventGenerator 
+	 * 
+	 * @param cameraId
+	 * @param producer
+	 * @param topic
+	 * @param cameraRetries
+	 */
 	public VideoEventGenerator(String cameraId, Producer<String, String> producer, String topic, int cameraRetries) {
 		this.cameraId = cameraId;
 		this.producer = producer;

@@ -1,3 +1,8 @@
+// File:         MongoWriter.java
+// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  6-June-2020         
+// 
+// Description:  MongoDB writer class is used to insert (file and number of averaged face count) into mongoDB
 package org.team1c.avs;
 
 import java.util.HashMap;
@@ -17,6 +22,14 @@ public class MongoWriter {
     private MongoDatabase db;
     private MongoCollection<Document> collection;
 
+    /**
+     * constructor class to create a new instance of MongoWriter
+     * 
+     * @param host
+     * @param port
+     * @param database
+     * @param collection
+     */
     public MongoWriter(String host, int port, String database, String collection) {
         this.host = host;
         this.port = port;
@@ -24,7 +37,13 @@ public class MongoWriter {
         this.db = this.client.getDatabase(database);
         this.collection = db.getCollection(collection);
     }
-
+    /**
+     * This method is used to insert file and average faces into the MongoDb database
+     * 
+     * 
+     * @param file String that will be inserted into the database
+     * @param avgFaces double average faces that will be inserted into the database
+     */
     public void insert(String file, double avgFaces) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         map.put("file", file);
