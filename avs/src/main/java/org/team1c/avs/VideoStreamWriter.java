@@ -3,9 +3,8 @@
 // Last Modified Date:  6-June-2020         
 // 
 // Description:  This class will create and assign Kafka consumer, consume frames, connect to hdfs
-//               and repeatedly: send aggregate data to mongo db, send video files to hdfs, write frames
-//               get number of face count
-
+//               and repeatedly: send aggregate data to mongo db, send video files to hdfs, write 
+//               frames get number of face count.
 
 package org.team1c.avs;
 
@@ -176,8 +175,8 @@ public class VideoStreamWriter implements Runnable{
     }
 
     /**
-     * This method will get the FPS and resolution from a frame correspond to the filename and formatted 
-     * as a VideoWriter class
+     * This method will get the FPS and resolution from a frame correspond to the filename and 
+     * formatted as a VideoWriter class
      * 
      * 
      * @param frame JsonObject

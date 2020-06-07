@@ -2,7 +2,9 @@
 // Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
 // Last Modified Date:  6-June-2020         
 // 
-// Description:  This class will create kafka consumer and kafka producer and start video stream processing
+// Description:  This class will create kafka consumer and kafka producer and start video stream 
+// 				 processing
+
 package org.team1c.avs;
 
 import java.util.Base64;
@@ -37,11 +39,15 @@ import com.google.gson.JsonObject;
 
 public class VideoStreamProcessor {
 	
-	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+	// load OpenCV libraries
+	// Use NATIVE_LIBRARY_NAME if it is available for your machine, otherwise load the library 
+	// directly
 	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
+	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
-	public static final String HAAR_CASCADE_FP = "E:\\OpenCV_4.1.2\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+	public static final String HAAR_CASCADE_FP = 
+		"E:\\OpenCV_4.1.2\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
 
 	public static final String CONSUMER_PROPERTIES_FP = "./properties/processor-consumer.properties";
 	public static final String PRODUCER_PROPERTIES_FP = "./properties/processor-producer.properties";
@@ -76,7 +82,8 @@ public class VideoStreamProcessor {
 	 * @param producer
 	 * @param topic
 	 */
-	public static void processFrames(Consumer<String, String> consumer, Producer<String, String> producer, String topic) {
+	public static void processFrames(Consumer<String, String> consumer, 
+		Producer<String, String> producer, String topic) {
 		Gson gson = new Gson();
 		CascadeClassifier faceCascade = new CascadeClassifier();
 		faceCascade.load(HAAR_CASCADE_FP);
@@ -115,7 +122,10 @@ public class VideoStreamProcessor {
 
 				// publish processed frame to Kafka
 				System.out.println("Republishing frame");
-				producer.send(new ProducerRecord<String, String>(topic, cameraId, serialized), new AvsPublishCallback(cameraId));
+				producer.send(
+					new ProducerRecord<String, String>(topic, cameraId, serialized),
+					new AvsPublishCallback(cameraId)
+				);
 			}
 		}
 	}

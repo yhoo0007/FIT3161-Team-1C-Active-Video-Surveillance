@@ -3,6 +3,7 @@
 // Last Modified Date:  6-June-2020         
 // 
 // Description:  -
+
 package org.team1c.avs;
 
 import java.sql.Timestamp;
@@ -39,7 +40,8 @@ public class VideoEventGenerator implements Runnable {
 	 * @param topic
 	 * @param cameraRetries
 	 */
-	public VideoEventGenerator(String cameraId, Producer<String, String> producer, String topic, int cameraRetries) {
+	public VideoEventGenerator(String cameraId, Producer<String, String> producer, String topic,
+		int cameraRetries) {
 		this.cameraId = cameraId;
 		this.producer = producer;
 		this.topic = topic;
@@ -47,11 +49,13 @@ public class VideoEventGenerator implements Runnable {
 	}
 
 	// load OpenCV libraries
-	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }  // TODO might have to change to load direct path instead
+	// Use NATIVE_LIBRARY_NAME if it is available for your machine, otherwise load the library 
+	// directly
+	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 	// static { System.loadLibrary("opencv_videoio_ffmpeg412_64"); }
+	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
 	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\bin\\opencv_videoio_ffmpeg412_64.dll"); }
-	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
 	
 
 	/**
@@ -95,7 +99,8 @@ public class VideoEventGenerator implements Runnable {
 			}
 		}
 		if (!camera.isOpened()) {
-			throw new Exception("Error opening camera: " + cameraId + " url: " + url + " check file path or url in property files");
+			throw new Exception("Error opening camera: " + cameraId + " url: " + url + 
+			" check file path or url in property files");
 		}
 		
 		Mat mat = new Mat();
@@ -128,7 +133,10 @@ public class VideoEventGenerator implements Runnable {
 			String serialized = gson.toJson(obj);
 			
 			// publish video frame to Kafka
-			producer.send(new ProducerRecord<String, String>(topic, cameraId, serialized), new AvsPublishCallback(cameraId));
+			producer.send(
+				new ProducerRecord<String, String>(topic, cameraId, serialized), 
+				new AvsPublishCallback(cameraId)
+			);
 		}
 		camera.release();
 		mat.release();

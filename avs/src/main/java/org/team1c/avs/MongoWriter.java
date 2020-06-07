@@ -2,7 +2,9 @@
 // Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
 // Last Modified Date:  6-June-2020         
 // 
-// Description:  MongoDB writer class is used to insert (file and number of averaged face count) into mongoDB
+// Description:  MongoDB writer class is used to insert (file and number of averaged face count) 
+//               into MongoDB.
+
 package org.team1c.avs;
 
 import java.util.HashMap;

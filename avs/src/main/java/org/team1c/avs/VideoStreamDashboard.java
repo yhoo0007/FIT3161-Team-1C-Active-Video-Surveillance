@@ -56,6 +56,11 @@ import java.util.Date;
 
 public class VideoStreamDashboard extends JFrame {
 
+    // load OpenCV libraries
+	// Use NATIVE_LIBRARY_NAME if it is available for your machine, otherwise load the library 
+	// directly
+	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
     static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
     public static final String PROPERTIES_FP = "./properties/dashboard.properties";
@@ -108,7 +113,10 @@ public class VideoStreamDashboard extends JFrame {
         // create kafka consumer
         Properties consumerProp = Util.getProperties(PROPERTIES_FP);
         consumer = new KafkaConsumer<String, String>(consumerProp);
-        List<Integer> cameraIds = Util.getCameraIds(consumer, consumerProp.getProperty("kafka.topic"));
+        List<Integer> cameraIds = Util.getCameraIds(
+            consumer, 
+            consumerProp.getProperty("kafka.topic")
+        );
         System.out.printf("Found %d number of cameras/partitions", cameraIds.size());
         consumer.subscribe(Collections.singletonList(consumerProp.getProperty("kafka.topic")));
 
@@ -239,7 +247,8 @@ public class VideoStreamDashboard extends JFrame {
      * @param series the series for the chart
      * @return JFreeChart
      */
-    private static JFreeChart drawChart(String title, String xaxis, String yaxis, TimeSeries series) {
+    private static JFreeChart drawChart(String title, String xaxis, String yaxis, 
+        TimeSeries series) {
         XYDataset collection = new TimeSeriesCollection(series);
         JFreeChart chart = ChartFactory.createTimeSeriesChart(
             title,

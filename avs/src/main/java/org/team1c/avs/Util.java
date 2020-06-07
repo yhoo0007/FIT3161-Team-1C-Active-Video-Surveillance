@@ -2,7 +2,8 @@
 // Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
 // Last Modified Date:  6-June-2020         
 // 
-// Description:  -
+// Description:  Collection of miscellaneous utility functions.
+
 package org.team1c.avs;
 
 import java.util.List;
@@ -52,7 +53,8 @@ public class Util {
 
 
     /**
-     * Queries the given consumer's Kafka cluster to get the number of cameras/partitions there are.
+     * Queries the given consumer's Kafka cluster to get the number of cameras/partitions there 
+     * are.
      * Note: Camera IDs are equivalent to partition numbers.
      * @param consumer Kafka consumer to query with
      * @param topic Kafka topic to query for
