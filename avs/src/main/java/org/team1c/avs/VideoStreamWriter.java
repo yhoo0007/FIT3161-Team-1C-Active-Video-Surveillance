@@ -23,6 +23,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.TopicPartition;
 
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -43,7 +44,9 @@ public class VideoStreamWriter implements Runnable{
     private String localFp = null;
     private String hdfsFp = null;
 
-    static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+    // static { System.load("/home/student/opencv_build/opencv/build/lib/libopencv_java420.so"); }
+    //static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
     /**
      * constructor method to create a new VideoStreamWrite
@@ -170,7 +173,7 @@ public class VideoStreamWriter implements Runnable{
      * yyyy-MM-dd-HH-mm-ss.avi
      * 
      */
-    private String generateFileName() {
+    public static String generateFileName() {
         return new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + ".avi";
     }
 

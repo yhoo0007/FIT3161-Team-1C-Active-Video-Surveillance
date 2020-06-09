@@ -42,12 +42,13 @@ public class VideoStreamProcessor {
 	// load OpenCV libraries
 	// Use NATIVE_LIBRARY_NAME if it is available for your machine, otherwise load the library 
 	// directly
-	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
-	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
-	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+	// static { System.load("/home/student/opencv_build/opencv/build/lib/libopencv_java420.so"); }
+	//static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
-	public static final String HAAR_CASCADE_FP = 
-		"E:\\OpenCV_4.1.2\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+	// public static final String HAAR_CASCADE_FP = 
+	//	"E:\\OpenCV_4.1.2\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+	public static final String HAAR_CASCADE_FP = "/home/student/opencv_build/opencv/data/haarcascades/haarcascade_frontalface_alt.xml";
 
 	public static final String CONSUMER_PROPERTIES_FP = "./properties/processor-consumer.properties";
 	public static final String PRODUCER_PROPERTIES_FP = "./properties/processor-producer.properties";
@@ -138,7 +139,7 @@ public class VideoStreamProcessor {
 	 * @param faceCascade cascade classifier to use
 	 * @return number of matches detected
 	 */
-	private static int processFrame(Mat mat, CascadeClassifier faceCascade) {
+	public static int processFrame(Mat mat, CascadeClassifier faceCascade) {
 		// downsize image
 		Mat grayFrame = new Mat();
 		Size downsize = new Size(240, 160);

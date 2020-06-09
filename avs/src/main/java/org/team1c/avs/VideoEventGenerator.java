@@ -51,11 +51,11 @@ public class VideoEventGenerator implements Runnable {
 	// load OpenCV libraries
 	// Use NATIVE_LIBRARY_NAME if it is available for your machine, otherwise load the library 
 	// directly
-	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 	// static { System.loadLibrary("opencv_videoio_ffmpeg412_64"); }
-	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
-	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
-	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\bin\\opencv_videoio_ffmpeg412_64.dll"); }
+	// static { System.load("/home/student/opencv_build/opencv/build/lib/libopencv_java420.so"); }
+	// static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+	// static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\bin\\opencv_videoio_ffmpeg412_64.dll"); }
 	
 
 	/**
