@@ -1,9 +1,12 @@
-// File:         AvsCustomAssignor.java
+// File:         VideoStreamDashboard.java
 // Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
 // Last Modified Date:  5-June-2020         
 // 
-// Description:  This class is to run the dashboard that will show the live frames, 
-//analytical information as well as the FPS and Bitrate Meter
+// Description:  This class is to run the dashboard that will show the live frames, analytical 
+//               information as well as the FPS and Byterate gauges. Ensure that the Kafka cluster
+//               is running before starting this daemon, else the dashboard will not appear until
+//               a connection to the Kafka cluster is established.
+
 package org.team1c.avs;
 
 import java.util.Properties;
@@ -12,6 +15,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.stream.Collectors;
+import java.util.Date;
+
+import java.text.SimpleDateFormat;
 
 import javax.swing.*;
 import java.awt.*;
@@ -187,13 +193,13 @@ public class VideoStreamDashboard extends JFrame {
         // FPS Gauge
         fpsGauge = new Radial();
         fpsGauge.setTitle("FPS Meter");
-        fpsGauge.setUnitString("Frame per seconds");
+        fpsGauge.setUnitString("Frames per second");
         fpsGauge.setValue(0.0);
 
         // Bitrate Gauge
         bitRateGauge = new Radial();
-        bitRateGauge.setTitle("Bitrate");
-        bitRateGauge.setUnitString("Bits per seconds");
+        bitRateGauge.setTitle("Byterate");
+        bitRateGauge.setUnitString("MBps");
         bitRateGauge.setValue(0.0);
         
         // misc panel
@@ -333,10 +339,20 @@ public class VideoStreamDashboard extends JFrame {
                     );
                     long currentTime = System.currentTimeMillis();
                     long totalLatency = currentTime - initTime;
+                    resolutionLabel.setText(
+                        "Resolution: " + 
+                        Integer.toString(resolutionx) + 
+                        "x" + 
+                        Integer.toString(resolutiony)
+                    );
+                    datetimeLabel.setText(
+                        "Datetime: " + 
+                        new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date())
+                    );
                     latencyLabel.setText("Latency: " + Long.toString(totalLatency));
                     if (System.currentTimeMillis() > fpsPrevTime + 1000) {
                         fpsGauge.setValue(nframes);
-                        bitRateGauge.setValue(record.serializedValueSize());
+                        bitRateGauge.setValue(record.serializedValueSize()/1000);
                         nframes = 0;
                         fpsPrevTime = System.currentTimeMillis();
                     }
