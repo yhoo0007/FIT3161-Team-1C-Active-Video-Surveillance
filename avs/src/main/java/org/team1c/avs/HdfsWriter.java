@@ -25,7 +25,7 @@ public class HdfsWriter {
     /**
      * This is a constructor method to create a new Hdfs writer
      * 
-     * @throws IOException
+     * @throws IOException IOException will be thrown when there is error while creating instance of HdfsWriter
      */
     public HdfsWriter() throws IOException {
         Configuration conf = new Configuration();
@@ -34,12 +34,11 @@ public class HdfsWriter {
         this.fs = FileSystem.get(conf);
     }
     /**
-     * 
-     * this method will copy the file from localFp path into hdfsFp path
+     * This method will copy the file from local file pointer into hdfs file pointer path
      * 
      * @param localFp path of local file in string
      * @param hdfsFp path of hdfs in string
-     * @throws IOException
+     * @throws IOException IOException will be thrown when there is error while writing into hdfs
      */
     public void send(String localFp, String hdfsFp) throws IOException {
         fs.copyFromLocalFile(new Path(localFp), new Path(hdfsFp));

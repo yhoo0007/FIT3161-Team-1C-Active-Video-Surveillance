@@ -2,7 +2,7 @@
 // Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
 // Last Modified Date:  6-June-2020         
 // 
-// Description:  -
+// Description:  connects to video sources and introduces frames into the system
 package org.team1c.avs;
 
 import java.util.Properties;

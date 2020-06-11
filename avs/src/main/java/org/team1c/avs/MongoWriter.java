@@ -27,10 +27,10 @@ public class MongoWriter {
     /**
      * constructor class to create a new instance of MongoWriter
      * 
-     * @param host
-     * @param port
-     * @param database
-     * @param collection
+     * @param host MongoDB Host
+     * @param port MongoDB Port
+     * @param database MongoDB Database
+     * @param collection MongoDB Collection
      */
     public MongoWriter(String host, int port, String database, String collection) {
         this.host = host;

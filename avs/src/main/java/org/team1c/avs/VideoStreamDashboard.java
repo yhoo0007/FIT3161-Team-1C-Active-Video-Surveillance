@@ -117,7 +117,7 @@ public class VideoStreamDashboard extends JFrame {
      * - create bottom left panel for camera button selector
      *  - create bottom right panel for FPS and Bitrate meter
      * 
-     * @throws Exception
+     * @throws Exception it will throw exception when dashboard is not running properly
      */
     public VideoStreamDashboard() throws Exception {
         // create kafka consumer

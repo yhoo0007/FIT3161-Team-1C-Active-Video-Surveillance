@@ -2,7 +2,7 @@
 // Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
 // Last Modified Date:  6-June-2020         
 // 
-// Description:  -
+// Description:   stores the video and other information into archive
 package org.team1c.avs;
 
 import java.util.Properties;
@@ -16,7 +16,10 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 
 import org.team1c.avs.Util;
 
-
+/**
+ * This class is used to store video and other relevant information into archive
+ * 
+ */
 public class VideoStreamArchiver {
 
     public static final String PROPERTIES_FP = "./properties/archiver.properties";

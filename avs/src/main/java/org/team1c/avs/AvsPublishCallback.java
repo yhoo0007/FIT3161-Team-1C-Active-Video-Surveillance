@@ -14,9 +14,10 @@ public class AvsPublishCallback implements Callback {
     
     private String cameraId;
 
+    
     /**
      * constructor method to create AvsPublishCallback class which store the correspond camera id
-     * @param cameraId
+     * @param cameraId The camera id to publish callback
      */
     public AvsPublishCallback(String cameraId) {
         super();

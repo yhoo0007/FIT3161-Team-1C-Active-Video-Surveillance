@@ -37,10 +37,10 @@ public class VideoEventGenerator implements Runnable {
 	 * 
 	 * constructor method to create a new VideoEventGenerator 
 	 * 
-	 * @param cameraId
-	 * @param producer
-	 * @param topic
-	 * @param cameraRetries
+	 * @param cameraId The Camera Id for a thread
+	 * @param producer Kafka Producer
+	 * @param topic Kafka Topic
+	 * @param cameraRetries Camera Retries
 	 */
 	public VideoEventGenerator(String cameraId, Producer<String, String> producer, String topic,
 		int cameraRetries) {
@@ -75,6 +75,7 @@ public class VideoEventGenerator implements Runnable {
 
 	/**
 	 * Main function for video event generating. Reads frames from the given camera url
+	 * @throws Exception Throw exception when camera cannot be opened 
 	 */
 	private void generateEvent() throws Exception {
 		// extract properties

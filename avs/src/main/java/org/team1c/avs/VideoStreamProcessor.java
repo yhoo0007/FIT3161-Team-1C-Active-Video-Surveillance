@@ -2,8 +2,7 @@
 // Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
 // Last Modified Date:  6-June-2020         
 // 
-// Description:  This class will create kafka consumer and kafka producer and start video stream 
-// 				 processing
+// Description:  performs real time video processing
 
 package org.team1c.avs;
 
@@ -74,16 +73,12 @@ public class VideoStreamProcessor {
 	}
 
 	/**
-	 * This method is to process frames for each records by:
-	 * - extracting frame 
-	 * - runing analytic on frame (face detection)
-	 * - creating and populating JSON object and serializing it into string
-	 * - publishing process frames into Kafka
+	 * This method is to process real time video frames 
 	 * 
 	 * 
-	 * @param consumer
-	 * @param producer
-	 * @param topic
+	 * @param consumer Kafka Consumer
+	 * @param producer Kafka Producer
+	 * @param topic Kafka Topic
 	 */
 	public static void processFrames(Consumer<String, String> consumer, 
 		Producer<String, String> producer, String topic) throws Exception {

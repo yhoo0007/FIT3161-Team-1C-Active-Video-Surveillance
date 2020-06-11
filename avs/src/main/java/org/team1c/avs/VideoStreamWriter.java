@@ -169,9 +169,8 @@ public class VideoStreamWriter implements Runnable{
 
 
     /**
-     * This method will return a string of a file name formatted as
-     * yyyy-MM-dd-HH-mm-ss.avi
-     * 
+     * This method i used to generate avi file name "yyyy-MM-dd-HH-mm-ss.avi" 
+     * @return String yyyy-MM-dd-HH-mm-ss.avi file name
      */
     public static String generateFileName() {
         return new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + ".avi";
@@ -182,9 +181,9 @@ public class VideoStreamWriter implements Runnable{
      * formatted as a VideoWriter class
      * 
      * 
-     * @param frame JsonObject
-     * @param fileName a file name
-     * @return Video Writer
+     * @param frame JsonObject Frames that want to be written
+     * @param fileName String a file name that will be used to store the frame
+     * @return VideoWriter
      */
     private static VideoWriter getVideoWriter(JsonObject frame, String fileName) {
         return new VideoWriter(
