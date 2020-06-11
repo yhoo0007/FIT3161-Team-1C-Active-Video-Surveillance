@@ -24,6 +24,8 @@ import org.opencv.videoio.VideoCapture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import java.util.concurrent.TimeUnit;
+
 
 public class VideoEventGenerator implements Runnable {
 	private String cameraId;
@@ -137,6 +139,8 @@ public class VideoEventGenerator implements Runnable {
 				new ProducerRecord<String, String>(topic, cameraId, serialized), 
 				new AvsPublishCallback(cameraId)
 			);
+			
+			TimeUnit.MILLISECONDS.sleep(32);
 		}
 		camera.release();
 		mat.release();

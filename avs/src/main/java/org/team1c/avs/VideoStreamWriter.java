@@ -139,7 +139,7 @@ public class VideoStreamWriter implements Runnable{
                     try {
                         hdfsWriter.send(localFp, hdfsFp);
                     } catch (IOException e) {
-                        System.out.println("IO Exception when sending to HDFS");
+                        System.out.println("IO Exception when sending to HDFS " + e.toString());
                     }
                     fileName = generateFileName();
                     localFp = "../" + fileName;

@@ -67,7 +67,7 @@ public class VideoStreamDashboard extends JFrame {
 	// Use NATIVE_LIBRARY_NAME if it is available for your machine, otherwise load the library 
 	// directly
 	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
-	// static { System.load("/home/student/opencv_build/opencv/build/lib/libopencv_java420.so"); }
+	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
     // static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
     public static final String PROPERTIES_FP = "./properties/dashboard.properties";
@@ -94,7 +94,10 @@ public class VideoStreamDashboard extends JFrame {
     static JPanel miscPanel;
     static JLabel datetimeLabel;
     static JLabel resolutionLabel;
-    static JLabel latencyLabel;
+    static JLabel overallLatencyLabel;
+    static JLabel p1LatencyLabel;  // producer to processor latency
+    static JLabel p2LatencyLabel;  // processor to dashboard latency
+    static JLabel processLatencyLabel;  // latency induced by frame processing
 
     // divider positions
     private static int TOP_RIGHT_DIV = 360;
@@ -206,16 +209,32 @@ public class VideoStreamDashboard extends JFrame {
         // misc panel
         miscPanel = new JPanel();
         miscPanel.setSize(100, 100);
-        miscPanel.setLayout(new GridLayout(3, 1));
+        miscPanel.setLayout(new GridLayout(3, 2));
+        // resolution label
         resolutionLabel = new JLabel("Resolution:");
-        resolutionLabel.setFont(new Font("Serif", Font.PLAIN, 36));
+        resolutionLabel.setFont(new Font("Serif", Font.PLAIN, 16));
         miscPanel.add(resolutionLabel);
+        // datetime label
         datetimeLabel = new JLabel("Datetime:");
-        datetimeLabel.setFont(new Font("Serif", Font.PLAIN, 36));
+        datetimeLabel.setFont(new Font("Serif", Font.PLAIN, 16));
         miscPanel.add(datetimeLabel);
-        latencyLabel = new JLabel("Latency: 0%");
-        latencyLabel.setFont(new Font("Serif", Font.PLAIN, 36));
-        miscPanel.add(latencyLabel);
+        // overall latency label
+        overallLatencyLabel = new JLabel("Overall Latency: 0");
+        overallLatencyLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+        miscPanel.add(overallLatencyLabel);
+        // producer to processor latency label
+        p1LatencyLabel = new JLabel("P1 Latency: 0");
+        p1LatencyLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+        miscPanel.add(p1LatencyLabel);
+        // processor to dashboard latency label
+        p2LatencyLabel = new JLabel("P2 Latency: 0");
+        p2LatencyLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+        miscPanel.add(p2LatencyLabel);
+        // processing latency label
+        processLatencyLabel = new JLabel("Process Latency: 0");
+        processLatencyLabel.setFont(new Font("Serif", Font.PLAIN, 16));
+        miscPanel.add(processLatencyLabel);
+
 
         bottomRightPanel.setLayout(new GridLayout(1, 3));
         bottomRightPanel.add(miscPanel);
@@ -316,18 +335,21 @@ public class VideoStreamDashboard extends JFrame {
                 int channels = obj.get("channels").getAsInt();
                 double fps = obj.get("fps").getAsDouble();
                 long initTime = obj.get("initTime").getAsLong();
-                long procTime = obj.get("procTime").getAsLong();
+                long processTime = obj.get("procTime").getAsLong();
+                long postProcTime = obj.get("postProcTime").getAsLong();
 
-                byte[] bytes = Base64.getDecoder().decode(obj.get("frame").getAsString());
-                Mat mat = Util.ba2Mat(resolutiony, resolutionx, CvType.CV_8UC3, bytes);
-                Size upSize = new Size(1024, 768);
-                Imgproc.resize(mat, mat, upSize);
                 int nfaces = obj.get("nfaces").getAsInt();
                 cumulativeFaces += nfaces;
 
                 // filter frames for the given ID
                 if (Integer.parseInt(record.key()) == currentCameraId) {
-                    System.out.printf("New frame: CamID: %s\n", record.key());
+                	// extract frame
+                	byte[] bytes = Base64.getDecoder().decode(obj.get("frame").getAsString());
+		            Mat mat = Util.ba2Mat(resolutiony, resolutionx, CvType.CV_8UC3, bytes);
+		            Size upSize = new Size(1024, 768);
+		            Imgproc.resize(mat, mat, upSize);
+		            
+                    // System.out.printf("New frame: CamID: %s\n", record.key());
 
                     // display frame
                     displayImage(Util.Mat2BufferedImage(mat));
@@ -340,6 +362,8 @@ public class VideoStreamDashboard extends JFrame {
                     );
                     long currentTime = System.currentTimeMillis();
                     long totalLatency = currentTime - initTime;
+                    long p1Latency = postProcTime - processTime - initTime;
+                    long p2Latency = currentTime - postProcTime;
                     resolutionLabel.setText(
                         "Resolution: " + 
                         Integer.toString(resolutionx) + 
@@ -350,10 +374,14 @@ public class VideoStreamDashboard extends JFrame {
                         "Datetime: " + 
                         new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date())
                     );
-                    latencyLabel.setText("Latency: " + Long.toString(totalLatency));
-                    if (System.currentTimeMillis() > fpsPrevTime + 1000) {
+                    overallLatencyLabel.setText("Latency: " + Long.toString(totalLatency));
+                    p1LatencyLabel.setText("P1 Latency: " + Long.toString(p1Latency));
+                    p2LatencyLabel.setText("P2 Latency: " + Long.toString(p2Latency));
+                    processLatencyLabel.setText("Process Latency: " + Long.toString(processTime));
+                    if (System.currentTimeMillis() >= fpsPrevTime + 1000) {
                         fpsGauge.setValue(nframes);
                         bitRateGauge.setValue(record.serializedValueSize()/1000);
+                        System.out.println(Long.toString(System.currentTimeMillis() - fpsPrevTime) + "," + Long.toString(totalLatency) + "," + Long.toString(p1Latency) + "," + Long.toString(p2Latency) + "," + Long.toString(processTime) + "," + Integer.toString(nframes));
                         nframes = 0;
                         fpsPrevTime = System.currentTimeMillis();
                     }

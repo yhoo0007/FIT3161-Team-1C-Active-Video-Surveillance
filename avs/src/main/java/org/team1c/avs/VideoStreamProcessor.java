@@ -36,6 +36,8 @@ import org.opencv.objdetect.CascadeClassifier;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import java.util.concurrent.TimeUnit;
+
 
 public class VideoStreamProcessor {
 	
@@ -43,17 +45,17 @@ public class VideoStreamProcessor {
 	// Use NATIVE_LIBRARY_NAME if it is available for your machine, otherwise load the library 
 	// directly
 	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
-	// static { System.load("/home/student/opencv_build/opencv/build/lib/libopencv_java420.so"); }
-	//static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
+	// static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
 	// public static final String HAAR_CASCADE_FP = 
-	//	"E:\\OpenCV_4.1.2\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+	// 	"E:\\OpenCV_4.1.2\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
 	public static final String HAAR_CASCADE_FP = "/home/student/opencv_build/opencv/data/haarcascades/haarcascade_frontalface_alt.xml";
 
 	public static final String CONSUMER_PROPERTIES_FP = "./properties/processor-consumer.properties";
 	public static final String PRODUCER_PROPERTIES_FP = "./properties/processor-producer.properties";
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		try {
 			// create Kafka consumer
 			Properties consumerProp = Util.getProperties(CONSUMER_PROPERTIES_FP);
@@ -84,10 +86,12 @@ public class VideoStreamProcessor {
 	 * @param topic
 	 */
 	public static void processFrames(Consumer<String, String> consumer, 
-		Producer<String, String> producer, String topic) {
+		Producer<String, String> producer, String topic) throws Exception {
 		Gson gson = new Gson();
 		CascadeClassifier faceCascade = new CascadeClassifier();
 		faceCascade.load(HAAR_CASCADE_FP);
+		long prevLatency = 0;
+		int delay = 0;
 		while (true) {
 			ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
 			for (ConsumerRecord<String, String> record : consumerRecords) {
@@ -104,7 +108,9 @@ public class VideoStreamProcessor {
 				System.out.printf("New Frame: CamID: %s\n", cameraId);
 
 				// run analytics on frame
+				Long processTime = System.currentTimeMillis();
 				int nfaces = processFrame(mat, faceCascade);
+				processTime = System.currentTimeMillis() - processTime;
 
 				// create and populate JSON object
 				obj = new JsonObject();
@@ -116,7 +122,8 @@ public class VideoStreamProcessor {
 				obj.addProperty("channels", channels);
 				obj.addProperty("fps", fps);
 				obj.addProperty("initTime", initTime);
-				obj.addProperty("procTime", System.currentTimeMillis());
+				obj.addProperty("procTime", processTime);
+				obj.addProperty("postProcTime", System.currentTimeMillis());
 
 				// serialize JSON object to string
 				String serialized = gson.toJson(obj);
@@ -127,6 +134,22 @@ public class VideoStreamProcessor {
 					new ProducerRecord<String, String>(topic, cameraId, serialized),
 					new AvsPublishCallback(cameraId)
 				);
+				
+				//// calculate latency
+				//long latency = System.currentTimeMillis() - initTime;
+				//long delta = latency - prevLatency;
+				//if (delta > 0) {
+					//delay = 0;
+				//} else {
+					//delay += (int) (-1 * delta);
+				//}
+				//if (delay < 0) {
+					//delay = 0;
+				//}
+				//System.out.println(delay);
+				//prevLatency = latency;
+				
+				//TimeUnit.MILLISECONDS.sleep(delay);
 			}
 		}
 	}
@@ -161,3 +184,4 @@ public class VideoStreamProcessor {
 		return listOfFaces.size();
 	}
 }
+
