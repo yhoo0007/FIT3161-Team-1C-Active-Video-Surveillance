@@ -1,6 +1,6 @@
 // File:         VideoStreamWriter.java
-// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
-// Last Modified Date:  6-June-2020         
+// Author:       Ho Yi Ping, Khai Fung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  12-June-2020
 // 
 // Description:  This class will create and assign Kafka consumer, consume frames, connect to hdfs
 //               and repeatedly: send aggregate data to mongo db, send video files to hdfs, write 
@@ -32,7 +32,9 @@ import org.opencv.videoio.VideoWriter;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-
+/**
+ * This class is to write video frames and its data detected to MongoDB and HDFS
+ */
 public class VideoStreamWriter implements Runnable{
     private int camId;
     private Properties archiverProp;
@@ -44,15 +46,16 @@ public class VideoStreamWriter implements Runnable{
     private String localFp = null;
     private String hdfsFp = null;
 
+    // should be commented if OpenCV is not detected
 	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
     // static { System.load("/home/student/opencv_build/opencv/build/lib/libopencv_java420.so"); }
     //static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
     /**
-     * constructor method to create a new VideoStreamWrite
+     * constructor method to create a new VideoStreamWriter
      * 
-     * @param camId the camera id
-     * @param archiverProp the properties
+     * @param camId camera id
+     * @param archiverProp property file settings of archiver consumer
      */
     public VideoStreamWriter(int camId, Properties archiverProp) {
         this.camId = camId;
@@ -65,11 +68,11 @@ public class VideoStreamWriter implements Runnable{
      * This function will run the video stream writer by:
      * - create and assign Kafka consumer
      * - consume frames
-     * - connect to mongo db
-     * - connect to hdfs
+     * - connect to MongoDB
+     * - connect to HDFS
      * - repeatedly:
-     *      + send aggregate data to mongo db
-     *      + send video files to hdfs
+     *      + send aggregate data to MongoDB
+     *      + send video files to HDFS
      *      + write frames
      *      + get aggregated data (number of face count)
      * 
@@ -106,11 +109,14 @@ public class VideoStreamWriter implements Runnable{
             return;
         }
         while (true) {
+            //get records from kafka broker
             ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
             for (ConsumerRecord<String, String> record : consumerRecords) {
+                //deserialize the JSON data
                 JsonObject frame = gson.fromJson(record.value(), JsonObject.class);
 
                 if (!initialized) {
+                    //start a new file for new batch
                     System.out.println("Initializing new batch");
                     fileName = generateFileName();
                     localFp = "../" + fileName;
@@ -181,7 +187,7 @@ public class VideoStreamWriter implements Runnable{
      * formatted as a VideoWriter class
      * 
      * 
-     * @param frame JsonObject Frames that want to be written
+     * @param frame one frame of video input
      * @param fileName String a file name that will be used to store the frame
      * @return VideoWriter
      */

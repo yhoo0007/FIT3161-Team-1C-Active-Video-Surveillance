@@ -1,8 +1,8 @@
 // File:         VideoStreamProcessor.java
-// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
-// Last Modified Date:  6-June-2020         
+// Author:       Ho Yi Ping, Khai Fung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  12-June-2020
 // 
-// Description:  performs real time video processing
+// Description:  performs real time video processing on image frames
 
 package org.team1c.avs;
 
@@ -37,7 +37,9 @@ import com.google.gson.JsonObject;
 
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * This class performs real time video processing on image frames received from Kafka
+ */
 public class VideoStreamProcessor {
 	
 	// load OpenCV libraries
@@ -49,8 +51,10 @@ public class VideoStreamProcessor {
 
 	// public static final String HAAR_CASCADE_FP = 
 	// 	"E:\\OpenCV_4.1.2\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+	//Haar Cascade Frontal Face
 	public static final String HAAR_CASCADE_FP = "/home/student/opencv_build/opencv/data/haarcascades/haarcascade_frontalface_alt.xml";
 
+	//get consumer and producer property files
 	public static final String CONSUMER_PROPERTIES_FP = "./properties/processor-consumer.properties";
 	public static final String PRODUCER_PROPERTIES_FP = "./properties/processor-producer.properties";
 
@@ -73,7 +77,7 @@ public class VideoStreamProcessor {
 	}
 
 	/**
-	 * This method is to process real time video frames 
+	 * This method is to process video frames based on the image processing algorithm
 	 * 
 	 * 
 	 * @param consumer Kafka Consumer
@@ -88,6 +92,7 @@ public class VideoStreamProcessor {
 		long prevLatency = 0;
 		int delay = 0;
 		while (true) {
+			//get consumer records from Kafka
 			ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
 			for (ConsumerRecord<String, String> record : consumerRecords) {
 				// extract frame from record
@@ -102,7 +107,7 @@ public class VideoStreamProcessor {
 				Mat mat = Util.ba2Mat(resolutiony, resolutionx, CvType.CV_8UC3, byteArray);
 				System.out.printf("New Frame: CamID: %s\n", cameraId);
 
-				// run analytics on frame
+				// run image processing to get data on frame
 				Long processTime = System.currentTimeMillis();
 				int nfaces = processFrame(mat, faceCascade);
 				processTime = System.currentTimeMillis() - processTime;
@@ -129,22 +134,6 @@ public class VideoStreamProcessor {
 					new ProducerRecord<String, String>(topic, cameraId, serialized),
 					new AvsPublishCallback(cameraId)
 				);
-				
-				//// calculate latency
-				//long latency = System.currentTimeMillis() - initTime;
-				//long delta = latency - prevLatency;
-				//if (delta > 0) {
-					//delay = 0;
-				//} else {
-					//delay += (int) (-1 * delta);
-				//}
-				//if (delay < 0) {
-					//delay = 0;
-				//}
-				//System.out.println(delay);
-				//prevLatency = latency;
-				
-				//TimeUnit.MILLISECONDS.sleep(delay);
 			}
 		}
 	}
@@ -158,7 +147,7 @@ public class VideoStreamProcessor {
 	 * @return number of matches detected
 	 */
 	public static int processFrame(Mat mat, CascadeClassifier faceCascade) {
-		// downsize image
+		// downsize image for faster processing
 		Mat grayFrame = new Mat();
 		Size downsize = new Size(240, 160);
 		Imgproc.cvtColor(mat, grayFrame, Imgproc.COLOR_BGR2GRAY);
@@ -176,7 +165,7 @@ public class VideoStreamProcessor {
 			Point bottomright = new Point(face.br().x * 3, face.br().y * 3);
 			Imgproc.rectangle(mat, topleft, bottomright, new Scalar(0,255,0), 3);
 		}
-		return listOfFaces.size();
+		return listOfFaces.size(); //number of faces
 	}
 }
 
