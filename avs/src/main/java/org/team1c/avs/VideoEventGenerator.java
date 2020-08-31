@@ -9,6 +9,7 @@ package org.team1c.avs;
 import java.sql.Timestamp;
 import java.util.Base64;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.Producer;
@@ -137,6 +138,8 @@ public class VideoEventGenerator implements Runnable {
 				new ProducerRecord<String, String>(topic, cameraId, serialized), 
 				new AvsPublishCallback(cameraId)
 			);
+
+			TimeUnit.MILLISECONDS.sleep(30);
 		}
 		camera.release();
 		mat.release();
