@@ -48,6 +48,7 @@ public class VideoStreamProcessor {
 
 	public static final String HAAR_CASCADE_FP = 
 		"E:\\OpenCV_4.1.2\\opencv\\sources\\data\\haarcascades\\haarcascade_frontalface_alt.xml";
+	// public static final String HAAR_CASCADE_FP = "/home/student/opencv_build/opencv/data/haarcascades/haarcascade_frontalface_alt.xml";
 
 	public static final String CONSUMER_PROPERTIES_FP = "./properties/processor-consumer.properties";
 	public static final String PRODUCER_PROPERTIES_FP = "./properties/processor-producer.properties";
@@ -103,7 +104,9 @@ public class VideoStreamProcessor {
 				System.out.printf("New Frame: CamID: %s\n", cameraId);
 
 				// run analytics on frame
+				Long processTime = System.currentTimeMillis();
 				int nfaces = processFrame(mat, faceCascade);
+				processTime = System.currentTimeMillis() - processTime;
 
 				// create and populate JSON object
 				obj = new JsonObject();
@@ -115,7 +118,8 @@ public class VideoStreamProcessor {
 				obj.addProperty("channels", channels);
 				obj.addProperty("fps", fps);
 				obj.addProperty("initTime", initTime);
-				obj.addProperty("procTime", System.currentTimeMillis());
+				obj.addProperty("procTime", processTime);
+				obj.addProperty("postProcTime", System.currentTimeMillis());
 
 				// serialize JSON object to string
 				String serialized = gson.toJson(obj);
@@ -138,7 +142,7 @@ public class VideoStreamProcessor {
 	 * @param faceCascade cascade classifier to use
 	 * @return number of matches detected
 	 */
-	private static int processFrame(Mat mat, CascadeClassifier faceCascade) {
+	public static int processFrame(Mat mat, CascadeClassifier faceCascade) {
 		// downsize image
 		Mat grayFrame = new Mat();
 		Size downsize = new Size(240, 160);
