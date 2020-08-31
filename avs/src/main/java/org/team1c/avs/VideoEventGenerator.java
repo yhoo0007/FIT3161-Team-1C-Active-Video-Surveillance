@@ -1,6 +1,6 @@
 // File:         VideoEventGenerator.java
-// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
-// Last Modified Date:  6-June-2020         
+// Author:       Ho Yi Ping, Khai Fung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  12-June-2020
 // 
 // Description:  -
 
@@ -25,7 +25,11 @@ import org.opencv.videoio.VideoCapture;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+import java.util.concurrent.TimeUnit;
 
+/**
+ * This class is to generate events and push frames into Kafka broker by reading frames of input
+ */
 public class VideoEventGenerator implements Runnable {
 	private String cameraId;
 	private Producer<String, String> producer;
@@ -33,13 +37,12 @@ public class VideoEventGenerator implements Runnable {
 	private int cameraRetries;
 
 	/**
+	 * Constructor method to create a new VideoEventGenerator
 	 * 
-	 * constructor method to create a new VideoEventGenerator 
-	 * 
-	 * @param cameraId
-	 * @param producer
-	 * @param topic
-	 * @param cameraRetries
+	 * @param cameraId Camera Id of the video input
+	 * @param producer Kafka Producer
+	 * @param topic Kafka Topic
+	 * @param cameraRetries Camera Retries number
 	 */
 	public VideoEventGenerator(String cameraId, Producer<String, String> producer, String topic,
 		int cameraRetries) {
@@ -52,11 +55,11 @@ public class VideoEventGenerator implements Runnable {
 	// load OpenCV libraries
 	// Use NATIVE_LIBRARY_NAME if it is available for your machine, otherwise load the library 
 	// directly
-	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 	// static { System.loadLibrary("opencv_videoio_ffmpeg412_64"); }
-	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
-	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
-	static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\bin\\opencv_videoio_ffmpeg412_64.dll"); }
+	// static { System.load("/home/student/opencv_build/opencv/build/lib/libopencv_java420.so"); }
+	// static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+	// static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\bin\\opencv_videoio_ffmpeg412_64.dll"); }
 	
 
 	/**
@@ -65,7 +68,7 @@ public class VideoEventGenerator implements Runnable {
 	@Override
 	public void run() {
 		try {
-			generateEvent();
+			generateEvent();  //if input can be read, send data
 		} catch (Exception e) {
 			System.out.println(e.toString());
 		}
@@ -74,6 +77,7 @@ public class VideoEventGenerator implements Runnable {
 
 	/**
 	 * Main function for video event generating. Reads frames from the given camera url
+	 * @throws Exception Throw exception when camera cannot be opened 
 	 */
 	private void generateEvent() throws Exception {
 		// extract properties
@@ -94,12 +98,13 @@ public class VideoEventGenerator implements Runnable {
 				camera.open(url);
 			}
 			if (camera.isOpened()) {
-				attempts += cameraRetries;
+				attempts += cameraRetries; //attempts used to open camera
 			} else {
 				attempts++;
 			}
 		}
 		if (!camera.isOpened()) {
+			//if camera cannot be opened after too much retries
 			throw new Exception("Error opening camera: " + cameraId + " url: " + url + 
 			" check file path or url in property files");
 		}
@@ -138,8 +143,8 @@ public class VideoEventGenerator implements Runnable {
 				new ProducerRecord<String, String>(topic, cameraId, serialized), 
 				new AvsPublishCallback(cameraId)
 			);
-
-			TimeUnit.MILLISECONDS.sleep(30);
+			
+			TimeUnit.MILLISECONDS.sleep(32);  //artificial delay
 		}
 		camera.release();
 		mat.release();

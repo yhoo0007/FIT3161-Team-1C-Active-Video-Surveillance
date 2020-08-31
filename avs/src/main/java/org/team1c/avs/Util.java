@@ -1,8 +1,8 @@
 // File:         Util.java
-// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
+// Author:       Ho Yi Ping, Khai Fung Lim, Fernando Ng and Chong Chiu Gin
 // Last Modified Date:  6-June-2020         
 // 
-// Description:  Collection of miscellaneous utility functions.
+// Description:  Collection of miscellaneous utility functions that is used frequently.
 
 package org.team1c.avs;
 
@@ -23,9 +23,12 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.opencv.core.Mat;
 import org.opencv.core.CvType;
 
-
+/**
+ * Collection of miscellaneous utility functions that is used frequently.
+ */
 public class Util {
 
+    //get camera property file
     public static final String CAMERA_PROPERTIES_BASE_FP = "./properties/cameras/";
 
     /**

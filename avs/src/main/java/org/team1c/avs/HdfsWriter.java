@@ -1,6 +1,6 @@
 // File:         HdfsWriter.java
-// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
-// Last Modified Date:  5-June-2020         
+// Author:       Ho Yi Ping, Khai Fung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  8-June-2020
 // 
 // Description:  This is a Hdfs writer which will be used to copy from localfile into hdfs file.
 
@@ -18,14 +18,16 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.Tool;
 
-
+/**
+ * Hdfs writer which will be used to copy a file and store it into HDFS
+ */
 public class HdfsWriter {
     private FileSystem fs;
 
     /**
      * This is a constructor method to create a new Hdfs writer
      * 
-     * @throws IOException
+     * @throws IOException IOException will be thrown when there is error while creating instance of HdfsWriter
      */
     public HdfsWriter() throws IOException {
         Configuration conf = new Configuration();
@@ -34,12 +36,11 @@ public class HdfsWriter {
         this.fs = FileSystem.get(conf);
     }
     /**
-     * 
-     * this method will copy the file from localFp path into hdfsFp path
+     * This method will copy a file and store it into HDFS
      * 
      * @param localFp path of local file in string
-     * @param hdfsFp path of hdfs in string
-     * @throws IOException
+     * @param hdfsFp path of HDFS in string
+     * @throws IOException IOException will be thrown when there is error while writing into hdfs
      */
     public void send(String localFp, String hdfsFp) throws IOException {
         fs.copyFromLocalFile(new Path(localFp), new Path(hdfsFp));

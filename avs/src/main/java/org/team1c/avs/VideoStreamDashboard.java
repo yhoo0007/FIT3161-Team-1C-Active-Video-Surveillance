@@ -1,6 +1,6 @@
 // File:         VideoStreamDashboard.java
-// Author:       Ho Yi Ping, Khaifung Lim, Fernando Ng and Chong Chiu Gin
-// Last Modified Date:  5-June-2020         
+// Author:       Ho Yi Ping, Khai Fung Lim, Fernando Ng and Chong Chiu Gin
+// Last Modified Date:  12-June-2020
 // 
 // Description:  This class is to run the dashboard that will show the live frames, analytical 
 //               information as well as the FPS and Byterate gauges. Ensure that the Kafka cluster
@@ -60,16 +60,19 @@ import org.team1c.avs.VideoStreamCollector;
 
 import java.util.Date;
 
-
+/**
+ * This class runs the dashboard of the system.
+ */
 public class VideoStreamDashboard extends JFrame {
 
     // load OpenCV libraries
 	// Use NATIVE_LIBRARY_NAME if it is available for your machine, otherwise load the library 
 	// directly
-	// static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+	static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 	// static { System.load("/home/ubuntu/opencv/opencv-3.4/build/lib/libopencv_java3410.so"); }
-    static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
+    // static { System.load("E:\\OpenCV_4.1.2\\opencv\\build\\java\\x64\\opencv_java412.dll"); }
 
+    //read dashboard consumer properties
     public static final String PROPERTIES_FP = "./properties/dashboard.properties";
 
     // top panels
@@ -105,6 +108,7 @@ public class VideoStreamDashboard extends JFrame {
     private static int BOTTOM_DIV = 200;
     private static int TOP_BOTTOM_DIV = 780;
 
+    //video id to be displayed
     static int currentCameraId = 0;
     static Consumer<String, String> consumer;
 
@@ -115,9 +119,9 @@ public class VideoStreamDashboard extends JFrame {
      * - create top right top panel for first chart (Face count)
      * - create top right bottom panel for the second chart (Cummulative face count)
      * - create bottom left panel for camera button selector
-     *  - create bottom right panel for FPS and Bitrate meter
+     * - create bottom right panel for FPS and Bitrate meter
      * 
-     * @throws Exception
+     * @throws Exception it will throw exception when dashboard is not running properly
      */
     public VideoStreamDashboard() throws Exception {
         // create kafka consumer
@@ -200,7 +204,7 @@ public class VideoStreamDashboard extends JFrame {
         fpsGauge.setUnitString("Frames per second");
         fpsGauge.setValue(0.0);
 
-        // Bitrate Gauge
+        // Byterate Gauge
         bitRateGauge = new Radial();
         bitRateGauge.setTitle("Byterate");
         bitRateGauge.setUnitString("MBps");
@@ -235,7 +239,7 @@ public class VideoStreamDashboard extends JFrame {
         processLatencyLabel.setFont(new Font("Serif", Font.PLAIN, 16));
         miscPanel.add(processLatencyLabel);
 
-
+        //add all statistics to bottom right panel
         bottomRightPanel.setLayout(new GridLayout(1, 3));
         bottomRightPanel.add(miscPanel);
         bottomRightPanel.add(fpsGauge);
@@ -260,12 +264,12 @@ public class VideoStreamDashboard extends JFrame {
 
         setContentPane(mainPanel);
         setLocationRelativeTo(null);
-        setMinimumSize(new Dimension(1500, 1000));
+        setMinimumSize(new Dimension(1500, 1000));  //open dashboard
         setVisible(true);
     }
 
     /**
-     * This method will return a JFreeChart 
+     * This method will return a JFreeChart of provided parameters
      * 
      * @param title title of the chart
      * @param xaxis x axis label
@@ -288,12 +292,17 @@ public class VideoStreamDashboard extends JFrame {
         return chart;
     }
 
-  
-    
+
+    /**
+     * This class adds an action listener to the camera buttons
+     */
     private static class CameraButtonListener implements ActionListener {
         private int cameraId;
 
-
+        /**
+         * This function sets the camera button to listen to a specific camera id
+         * @param cameraId id of the video input
+         */
         public CameraButtonListener(int cameraId) {
             this.cameraId = cameraId;
         }
@@ -324,6 +333,7 @@ public class VideoStreamDashboard extends JFrame {
         long fpsPrevTime = System.currentTimeMillis();
 
         while (true) {
+            //poll Kafka for records
             ConsumerRecords<String, String> consumerRecords = consumer.poll(1000);
             for (ConsumerRecord<String, String> record : consumerRecords) {
 
@@ -338,22 +348,24 @@ public class VideoStreamDashboard extends JFrame {
                 long processTime = obj.get("procTime").getAsLong();
                 long postProcTime = obj.get("postProcTime").getAsLong();
 
-                byte[] bytes = Base64.getDecoder().decode(obj.get("frame").getAsString());
-                Mat mat = Util.ba2Mat(resolutiony, resolutionx, CvType.CV_8UC3, bytes);
-                Size upSize = new Size(1024, 768);
-                Imgproc.resize(mat, mat, upSize);
                 int nfaces = obj.get("nfaces").getAsInt();
                 cumulativeFaces += nfaces;
 
-                // filter frames for the given ID
+                // filter frames to display the correct video feed
                 if (Integer.parseInt(record.key()) == currentCameraId) {
-                    System.out.printf("New frame: CamID: %s\n", record.key());
+                	// extract frame
+                	byte[] bytes = Base64.getDecoder().decode(obj.get("frame").getAsString());
+		            Mat mat = Util.ba2Mat(resolutiony, resolutionx, CvType.CV_8UC3, bytes);
+		            Size upSize = new Size(1024, 768); //change to output resolution
+		            Imgproc.resize(mat, mat, upSize);
+		            
+                    // System.out.printf("New frame: CamID: %s\n", record.key());
 
                     // display frame
                     displayImage(Util.Mat2BufferedImage(mat));
                     nframes++;
 
-                    // display analytical data
+                    // update and display analytical data
                     displayAnalytics(
                         nfaces,
                         cumulativeFaces
@@ -376,9 +388,12 @@ public class VideoStreamDashboard extends JFrame {
                     p1LatencyLabel.setText("P1 Latency: " + Long.toString(p1Latency));
                     p2LatencyLabel.setText("P2 Latency: " + Long.toString(p2Latency));
                     processLatencyLabel.setText("Process Latency: " + Long.toString(processTime));
-                    if (System.currentTimeMillis() > fpsPrevTime + 1000) {
+
+                    //update fps, byterate calculation after every second
+                    if (System.currentTimeMillis() >= fpsPrevTime + 1000) {
                         fpsGauge.setValue(nframes);
                         bitRateGauge.setValue(record.serializedValueSize()/1000);
+                        System.out.println(Long.toString(System.currentTimeMillis() - fpsPrevTime) + "," + Long.toString(totalLatency) + "," + Long.toString(p1Latency) + "," + Long.toString(p2Latency) + "," + Long.toString(processTime) + "," + Integer.toString(nframes));
                         nframes = 0;
                         fpsPrevTime = System.currentTimeMillis();
                     }
@@ -388,7 +403,7 @@ public class VideoStreamDashboard extends JFrame {
     }
 
     /**
-     * this method will update the topLeftPanel of the dashboard into a new image
+     * This method will update the topLeftPanel of the dashboard with a new image
      * 
      * @param img new image that want to be updated
      */
@@ -397,23 +412,28 @@ public class VideoStreamDashboard extends JFrame {
 	    topLeftPanel.setSize(img.getWidth(null)+50, img.getHeight(null)+50);     
 	    topLeftLabel.setIcon(icon);
 	    topLeftPanel.add(topLeftLabel);
-	    topLeftPanel.repaint();
+	    topLeftPanel.repaint(); //redraw the panel with new image frame
 	    topLeftPanel.validate();
 	}
 
     /**
-     * this method is used to add new data into faceCountSeries and cumulativeSeries
-     * as a result, the graph will be dynamically changing
+     * This method is used to add new data into faceCountSeries and cumulativeSeries.
+     * As a result, the graph will be dynamically changing
      * 
-     * @param nfaces
-     * @param cumulativeFaces
+     * @param nfaces number of faces of the video at the frame
+     * @param cumulativeFaces total number of faces for all videos
      */
     public static void displayAnalytics(int nfaces, int cumulativeFaces) {
         faceCountSeries.add(new Millisecond(new Date()), nfaces);
         cumulativeSeries.add(new Millisecond(new Date()), cumulativeFaces);
     }
 
-
+    /**
+     * This function display the video dashboard
+     *
+     * @param args Not used
+     * @throws Exception Exception message of error
+     */
     public static void main(String[] args) throws Exception {
         new VideoStreamDashboard();
         run();
